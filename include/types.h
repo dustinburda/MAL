@@ -168,6 +168,8 @@ struct Symbol : MalType {
 };
 
 struct Nil : MalType {
+    Nil() : MalType{NodeType::Nil} {}
+
     std::string Print() override {
         std::stringstream ss;
 
