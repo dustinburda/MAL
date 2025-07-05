@@ -4,4 +4,4 @@ project(MAL)
 
 set(CMAKE_CXX_STANDARD 23)
 
-add_executable(MAL step1_read_print.cpp reader.cpp types.cpp printer.cpp)
+add_executable(MAL src/step1_read_print.cpp src/reader.cpp src/types.cpp src/printer.cpp)

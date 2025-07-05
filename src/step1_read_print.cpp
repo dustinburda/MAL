@@ -2,9 +2,8 @@
 #include <iostream>
 #include <string>
 
-#include "printer.h"
-#include "reader.h"
-#include "types.h"
+#include "../include/printer.h"
+#include "../include/reader.h"
 
 /*
  * @brief Takes source code and tokenizes + parses it into an AST
@@ -46,7 +45,7 @@ MalNode EVAL(MalNode ast, [[ maybe_unused ]] std::string env) {
  * @param
  * */
 std::string PRINT(MalNode ast) {
-    return print_ast(ast);
+    return PrintAst(ast);
 }
 
 std::string rep(std::string line) {
@@ -54,8 +53,6 @@ std::string rep(std::string line) {
 }
 
 int main() {
-    std::string line;
-
     while (true) {
         std::cout << "user> ";
 

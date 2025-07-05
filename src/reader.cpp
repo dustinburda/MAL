@@ -1,4 +1,4 @@
-#include "reader.h"
+#include "../include/reader.h"
 
 std::optional<std::string> Reader::Next() {
     if (index_ >= tokens_.size())
@@ -86,6 +86,15 @@ MalNode Reader::ReadAtom() {
         default : {
             if (isdigit(token[0])) {
                 node = ReadNum();
+                break;
+            } else if (token == "nil") {
+                node = std::make_shared<Nil>();
+                break;
+            } else if (token[0] == '\"' && token.back() == '\"') {
+                node = ReadString();
+                break;
+            } else if (token == "true" || token == "false") {
+                node = (token == "true") ? std::make_shared<Boolean>(true) : std::make_shared<Boolean>(false);
                 break;
             }
         }

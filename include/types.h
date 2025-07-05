@@ -13,6 +13,7 @@ struct MalType {
         HashMap,
         Int,
         Double,
+        Keyword,
         String,
         Boolean,
         Symbol,
@@ -62,9 +63,13 @@ struct Double : MalType {
     double num_;
 };
 
+struct Keyword : MalType {
+    explicit Keyword(std::string keyword) : MalType(NodeType::Keyword), keyword_{keyword.substr(1, keyword.size() - 1)} {}
+    std::string keyword_;
+};
+
 struct String : MalType {
     explicit String(std::string s) : MalType{NodeType::String}, s_{s} {}
-
     std::string s_;
 };
 
@@ -80,7 +85,7 @@ struct Symbol : MalType {
     char symbol_;
 };
 
-class Nil : MalType {
+struct Nil : MalType {
 
 };
 
