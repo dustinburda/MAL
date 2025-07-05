@@ -48,11 +48,15 @@ template<typename ListType>
 MalNode Reader::ReadSequence() {
     MalNode node = std::make_shared<ListType>();
 
-    Next(); // '('
+    Next(); // '(', '['
 
-    while (Peek().has_value() && Peek().value() != ")") {
+    std::string termination_string = (std::is_same<ListType, List>::value) ? ")" : "]";
+
+    while (Peek().has_value() && Peek().value() != termination_string) {
         static_cast<ListType*>(node.get())->children_.push_back(ReadForm());
     }
+
+    Next(); // ')', ']'
 
     return node;
 }

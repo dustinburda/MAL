@@ -60,7 +60,21 @@ MalNode Reader::ReadForm() {
 }
 
 MalNode Reader::ReadHashMap() {
-    return nullptr;
+    Next(); // '{'
+
+    std::unordered_map<std::string, MalNode> kv;
+    while (Peek().has_value() && Peek().value() != "}") {
+        auto key = Next().value();
+        auto val = ReadForm();
+
+        kv[key] = val;
+    }
+
+    Next(); // '}'
+    auto node = std::make_shared<HashMap>();
+    node->kv_ = std::move(kv);
+
+    return node;
 }
 
 MalNode Reader::ReadAtom() {
@@ -79,6 +93,10 @@ MalNode Reader::ReadAtom() {
             node = ReadSymbol();
             break;
         }
+        case ':': {
+            node = std::make_shared<Keyword>(token);
+            break;
+        }
         case '"' : {
             node = ReadString();
             break;
@@ -88,13 +106,20 @@ MalNode Reader::ReadAtom() {
                 node = ReadNum();
                 break;
             } else if (token == "nil") {
+                Next();
                 node = std::make_shared<Nil>();
                 break;
             } else if (token[0] == '\"' && token.back() == '\"') {
+                // TODO This isn't right
                 node = ReadString();
                 break;
             } else if (token == "true" || token == "false") {
+                Next();
                 node = (token == "true") ? std::make_shared<Boolean>(true) : std::make_shared<Boolean>(false);
+                break;
+            } else if (std::isalpha(token[0])) {
+                Next();
+                node = std::make_shared<Symbol>(token);
                 break;
             }
         }

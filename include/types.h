@@ -22,6 +22,7 @@ struct MalType {
     };
 
     MalType(NodeType type) : type_{type} {}
+    virtual ~MalType() {}
     virtual std::string Print() = 0;
 
     MalType::NodeType type_;
@@ -33,6 +34,7 @@ using MalNode = std::shared_ptr<MalType>;
 
 struct List : MalType {
     List() : MalType{NodeType::List}, children_{} {}
+    ~List() override  {}
 
     void Add(MalNode node) {
         children_.push_back(node);
@@ -41,6 +43,7 @@ struct List : MalType {
     std::string Print() override {
         std::stringstream ss;
 
+        ss << "(";
         for (size_t index = 0;auto& child : children_) {
             ss << child->Print();
 
@@ -49,6 +52,7 @@ struct List : MalType {
             if (index != children_.size())
                 ss << " ";
         }
+        ss << ")";
 
         return ss.str();
     }
@@ -58,6 +62,7 @@ struct List : MalType {
 
 struct Vector : MalType {
     Vector() : MalType{NodeType::Vector}, children_{} {}
+    ~Vector() override { }
 
     void Add(MalNode node) {
         children_.push_back(node);
@@ -66,9 +71,16 @@ struct Vector : MalType {
     std::string Print() override {
         std::stringstream ss;
 
-        for (auto& child : children_) {
+        ss << "[";
+        for (size_t index = 0;auto& child : children_) {
             ss << child->Print();
+
+            index++;
+
+            if (index != children_.size())
+                ss << " ";
         }
+        ss << "]";
 
         return ss.str();
     }
@@ -78,12 +90,31 @@ struct Vector : MalType {
 
 struct HashMap : MalType {
     HashMap() : MalType{NodeType::HashMap}, kv_{} {}
+    ~HashMap() override  {}
+
+    std::string Print() override {
+        std::stringstream ss;
+
+        ss << "{";
+        for (size_t index = 0; auto& [k, v] : kv_) {
+            ss << k << " " <<  v->Print();
+
+            index++;
+
+            if (index != kv_.size())
+                ss << " ";
+        }
+        ss << "}";
+
+        return ss.str();
+    }
 
     std::unordered_map<std::string, MalNode> kv_;
 };
 
 struct Int : MalType {
     explicit Int(int i) : MalType{NodeType::Int}, num_{i} {}
+    ~Int() override { }
 
     std::string Print() override {
         std::stringstream ss;
@@ -98,6 +129,7 @@ struct Int : MalType {
 
 struct Double : MalType {
     explicit Double(double d) : MalType{NodeType::Double}, num_{d} {}
+    ~Double() override {}
 
     std::string Print() override {
         std::stringstream ss;
@@ -112,6 +144,7 @@ struct Double : MalType {
 
 struct Keyword : MalType {
     explicit Keyword(std::string keyword) : MalType(NodeType::Keyword), keyword_{keyword.substr(1, keyword.size() - 1)} {}
+    ~Keyword() override {}
 
     std::string Print() override {
         std::stringstream ss;
@@ -126,6 +159,7 @@ struct Keyword : MalType {
 
 struct String : MalType {
     explicit String(std::string s) : MalType{NodeType::String}, s_{s} {}
+    ~String() override {}
 
     std::string Print() override {
         std::stringstream ss;
@@ -140,6 +174,7 @@ struct String : MalType {
 
 struct Boolean : MalType {
     explicit Boolean(bool b) : MalType{NodeType::Boolean}, b_{b} {}
+    ~Boolean() override {}
 
     std::string Print() override {
         std::stringstream ss;
@@ -154,7 +189,8 @@ struct Boolean : MalType {
 
 struct Symbol : MalType {
     explicit Symbol(char symbol) : MalType{NodeType::Symbol}, symbol_{symbol} {}
-    explicit Symbol(std::string symbol) : MalType{NodeType::Symbol}, symbol_{symbol[0]} { assert(symbol.size() == 1); }
+    explicit Symbol(std::string symbol) : MalType{NodeType::Symbol}, symbol_{symbol} { }
+    ~Symbol() override {}
 
     std::string Print() override {
         std::stringstream ss;
@@ -164,11 +200,12 @@ struct Symbol : MalType {
         return ss.str();
     }
 
-    char symbol_;
+    std::string symbol_;
 };
 
 struct Nil : MalType {
     Nil() : MalType{NodeType::Nil} {}
+    ~Nil() override {}
 
     std::string Print() override {
         std::stringstream ss;
