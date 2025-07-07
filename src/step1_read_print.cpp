@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <exception>
 #include <iostream>
 #include <string>
 
@@ -62,7 +63,11 @@ int main() {
         std::string line;
         std::getline(std::cin, line);
 
-        std::cout << rep(line) << std::endl;
+        try {
+            std::cout << rep(line) << std::endl;
+        } catch( const std::exception& e) {
+            std::cout << e.what() << std::endl;
+        }
     }
 
 

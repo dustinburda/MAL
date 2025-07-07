@@ -26,6 +26,10 @@ void Reader::Tokenize() {
     for (auto i = tokens_begin; i != tokens_end; i++) {
         std::smatch match = *i;
         std::string match_str = match[1].str();
+
+        if (match_str[0] == ';')
+            continue;
+
         tokens_.push_back(match_str);
     }
 }
@@ -63,14 +67,17 @@ MalNode Reader::ReadHashMap() {
     Next(); // '{'
 
     std::unordered_map<std::string, MalNode> kv;
-    while (Peek().has_value() && Peek().value() != "}") {
+    while (Peek().has_value() && Peek().value() != "}" && Peek().value() != "") {
         auto key = Next().value();
         auto val = ReadForm();
 
         kv[key] = val;
     }
 
-    Next(); // '}'
+    auto terminator = Next().value(); // '}'
+    if (terminator != "}")
+        throw std::logic_error("unbalanced");
+
     auto node = std::make_shared<HashMap>();
     node->kv_ = std::move(kv);
 
@@ -94,11 +101,24 @@ MalNode Reader::ReadAtom() {
             break;
         }
         case ':': {
+            Next();
             node = std::make_shared<Keyword>(token);
             break;
         }
         case '"' : {
             node = ReadString();
+            break;
+        }
+        case '`': {
+            node = ReadQuote<Quasiquote>();
+            break;
+        }
+        case '\'': {
+            node = ReadQuote<Quote>();
+            break;
+        }
+        case '~': {
+            node = ReadQuote<Unquote>();
             break;
         }
         default : {
@@ -110,7 +130,6 @@ MalNode Reader::ReadAtom() {
                 node = std::make_shared<Nil>();
                 break;
             } else if (token[0] == '\"' && token.back() == '\"') {
-                // TODO This isn't right
                 node = ReadString();
                 break;
             } else if (token == "true" || token == "false") {
@@ -120,6 +139,9 @@ MalNode Reader::ReadAtom() {
             } else if (std::isalpha(token[0])) {
                 Next();
                 node = std::make_shared<Symbol>(token);
+                break;
+            } else {
+                node = std::make_shared<Nil>();
                 break;
             }
         }
@@ -146,5 +168,38 @@ MalNode Reader::ReadNum() {
 }
 
 MalNode Reader::ReadString() {
-    return nullptr;
+    auto token = Next().value();
+    if( token[0] != token.back() || token.size() == 1)
+        throw std::logic_error("unbalanced");
+
+    std::string value;
+
+    std::string literal_value = token.substr(1, token.size() - 2);
+    for(std::size_t index = 0; index < literal_value.size(); index++)
+    {
+//        if (literal_value[index] == '\\' && index < literal_value.size() - 1) {
+//            switch (literal_value[index + 1]) {
+//                case '\n': {
+//                    value += '\n';
+//                    index++;
+//                    continue;
+//                }
+//                case '\\': {
+//                    value += '\\';
+//                    index++;
+//                    continue;
+//                }
+//                case '\"': {
+//                    value += '\"';
+//                    index++;
+//                    continue;
+//                }
+//            }
+//        }
+
+        value += literal_value[index];
+    }
+
+
+    return std::make_shared<String>(value);
 }

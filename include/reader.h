@@ -25,6 +25,9 @@ public:
     MalNode ReadNum();
     MalNode ReadString();
 
+    template<typename QuoteType>
+    MalNode ReadQuote();
+
     template<typename ListType>
     MalNode ReadSequence();
 
@@ -40,7 +43,19 @@ private:
 
 
 /*
- * @brief Reads a sequence of
+ * @brief Creates a quote/quasiquote node
+ *
+ * @return AST Quote/Quasiquote node
+ * */
+template<typename QuoteType>
+MalNode Reader::ReadQuote() {
+    [[maybe_unused ]] auto quote = Next().value();
+    auto node = ReadForm();
+    return std::make_shared<QuoteType>(node);
+}
+
+/*
+ * @brief Reads a sequence of child nodes into a list or vector structure
  *
  * @return AST List/Vector node
  * */
@@ -52,11 +67,13 @@ MalNode Reader::ReadSequence() {
 
     std::string termination_string = (std::is_same<ListType, List>::value) ? ")" : "]";
 
-    while (Peek().has_value() && Peek().value() != termination_string) {
+    while (Peek().has_value() && Peek().value() != termination_string && Peek().value() != "") {
         static_cast<ListType*>(node.get())->children_.push_back(ReadForm());
     }
 
-    Next(); // ')', ']'
+    auto actual_terminator = Next().value(); // ')', ']'
+    if (actual_terminator !=  termination_string)
+        throw std::logic_error("unbalanced");
 
     return node;
 }

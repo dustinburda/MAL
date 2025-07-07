@@ -18,6 +18,9 @@ struct MalType {
         String,
         Boolean,
         Symbol,
+        Quote,
+        Quasiquote,
+        Unquote,
         Nil
     };
 
@@ -149,6 +152,7 @@ struct Keyword : MalType {
     std::string Print() override {
         std::stringstream ss;
 
+        ss << ":";
         ss << keyword_;
 
         return ss.str();
@@ -163,8 +167,9 @@ struct String : MalType {
 
     std::string Print() override {
         std::stringstream ss;
-
+        ss << "\"";
         ss << s_;
+        ss << "\"";
 
         return ss.str();
     }
@@ -202,6 +207,58 @@ struct Symbol : MalType {
 
     std::string symbol_;
 };
+
+struct Quote : MalType {
+    explicit Quote(MalNode child) : MalType{NodeType::Quote}, child_{child} {}
+    ~Quote() override {}
+
+    std::string Print() override {
+        std::stringstream ss;
+
+        ss << "(quote ";
+        ss << child_->Print();
+        ss << ")";
+
+        return ss.str();
+    }
+
+    MalNode child_;
+};
+
+struct Quasiquote : MalType {
+    explicit Quasiquote(MalNode child) : MalType{NodeType::Quasiquote}, child_{child} {}
+    ~Quasiquote() override {}
+
+    std::string Print() override {
+        std::stringstream ss;
+
+        ss << "(quasiquote ";
+        ss << child_->Print();
+        ss << ")";
+
+        return ss.str();
+    }
+
+    MalNode child_;
+};
+
+struct Unquote : MalType {
+    explicit Unquote(MalNode child) : MalType{NodeType::Unquote}, child_{child} {}
+    ~Unquote() override {}
+
+    std::string Print() override {
+        std::stringstream ss;
+
+        ss << "(unquote ";
+        ss << child_->Print();
+        ss << ")";
+
+        return ss.str();
+    }
+
+    MalNode child_;
+};
+
 
 struct Nil : MalType {
     Nil() : MalType{NodeType::Nil} {}
