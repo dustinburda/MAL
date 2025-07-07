@@ -94,11 +94,19 @@ MalNode Reader::ReadAtom() {
 
     switch (token[0]) {
         case '+':
-        case '-':
         case '*':
         case '/': {
             node = ReadSymbol();
             break;
+        }
+        case '-': {
+            if (token.size() == 1) {
+                node = ReadSymbol();
+                break;
+            } else if (token[0] == '-' && std::isdigit(token[1])) {
+                node = ReadNum();
+                break;
+            }
         }
         case ':': {
             Next();
@@ -122,7 +130,7 @@ MalNode Reader::ReadAtom() {
             break;
         }
         default : {
-            if (isdigit(token[0])) {
+            if (std::isdigit(token[0])) {
                 node = ReadNum();
                 break;
             } else if (token == "nil") {
