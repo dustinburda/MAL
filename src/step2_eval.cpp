@@ -61,11 +61,27 @@ MalNode EVAL(MalNode ast, [[ maybe_unused ]] EnvType& env) {
 
             auto& symbol = symbol_node->symbol_;
 
+            // TODO, make a mal function type
             if (env.count(symbol) == 0)
                 throw std::logic_error ("Symbol not in environment!");
 
+            break;
+        }
+        case MalType::NodeType::Vector: {
+            auto vector_node = static_cast<Vector*>(ast.get());
 
+            for(auto& child : vector_node->children_)
+                child = EVAL(child, env);
 
+            return ast;
+        }
+        case MalType::NodeType::HashMap: {
+            auto hash_map_node = static_cast<HashMap*>(ast.get());
+
+            for (auto& [k, child_node] : hash_map_node->kv_)
+                child_node = EVAL(child_node, env);
+
+            return ast;
         }
         default:
             break;
