@@ -8,6 +8,8 @@
 #include "../include/reader.h"
 #include "../include/repfuncs.h"
 
+std::vector<std::shared_ptr<Environment>> envs;
+
 /*
  * @brief Takes source code and tokenizes + parses it into an AST
  *
@@ -40,7 +42,22 @@ MalNode Apply(Environment& env, std::vector<MalNode>& children) {
         auto value = EVAL(children[2], env);
 
         env.Set(variable, value);
+
+        return value;
     } else if (symbol == "let*") {
+        auto current_env = std::make_shared<Environment>(&env);
+        envs.push_back(current_env);
+
+        auto binding_list = static_cast<List*>(children[1].get())->children_;
+
+        for(std::size_t i = 0; i < binding_list.size() - 1; i += 2) {
+            auto var = static_cast<Symbol*>(binding_list[i].get())->symbol_;
+            auto val = EVAL(binding_list[i+1], *current_env);
+
+            current_env->Set(var, val);
+        }
+
+        return EVAL(children[2], *current_env);
 
     } else {
         auto func = static_cast<Function*>(env.Get(symbol).get());

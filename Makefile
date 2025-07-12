@@ -1,8 +1,8 @@
 CXX_VERSION := c++23
 CFLAGS = -Wall -Werror -Wextra
 
-SRC_FILES := ./src/types.cpp ./src/reader.cpp ./src/printer.cpp
-INCLUDE_FILES := ./include/printer.h ./include/reader.h ./include/types.h ./include/environment.h
+SRC_FILES := ./src/types.cpp ./src/reader.cpp ./src/printer.cpp ./src/environment.cpp
+INCLUDE_FILES := ./include/printer.h ./include/reader.h ./include/types.h ./include/environment.h ./include/repfuncs.h
 
 step0_repl:
 	g++ -std=$(CXX_VERSION) $(CFLAGS) ./src/step0_repl.cpp -o step0_repl
@@ -14,7 +14,7 @@ step2_eval: $(SRC_FILES) $(INCLUDE_FILES)
 	g++ -std=$(CXX_VERSION) $(CFLAGS) ./src/step2_eval.cpp $(SRC_FILES) -o step2_eval
 
 step3_env: $(SRC_FILES) $(INCLUDE_FILES)
-	g++ -std=$(CXX_VERSION) $(CFLAGS) ./src/ste3_env.cpp $(SRC_FILES) -o step2_env
+	g++ -std=$(CXX_VERSION) $(CFLAGS) ./src/step3_env.cpp $(SRC_FILES) -o step3_env
 
 clean:
-	rm -f MAL step0_repl step1_read_print step2_eval
+	rm -f MAL step0_repl step1_read_print step2_eval step3_env

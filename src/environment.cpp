@@ -16,7 +16,7 @@ MalNode Environment::Get(std::string key) {
     if (map_.contains(key) == 0)
     {
         if (outer_ == nullptr)
-            throw std::logic_error("Key not found!");
+            throw std::logic_error(key + " not found!");
 
         return outer_->Get(key);
     }
