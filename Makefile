@@ -13,5 +13,8 @@ step1_read_print: $(SRC_FILES) $(INCLUDE_FILES)
 step2_eval: $(SRC_FILES) $(INCLUDE_FILES)
 	g++ -std=$(CXX_VERSION) $(CFLAGS) ./src/step2_eval.cpp $(SRC_FILES) -o step2_eval
 
+step3_env: $(SRC_FILES) $(INCLUDE_FILES)
+	g++ -std=$(CXX_VERSION) $(CFLAGS) ./src/ste3_env.cpp $(SRC_FILES) -o step2_env
+
 clean:
 	rm -f MAL step0_repl step1_read_print step2_eval

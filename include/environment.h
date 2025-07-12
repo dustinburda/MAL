@@ -12,35 +12,16 @@
 
 #include "types.h"
 
-using EnvType = std::unordered_map<std::string, std::function<MalNode(std::vector<MalNode>&)>>;
+class Environment {
+public:
+    Environment();
+    Environment(Environment* outer);
 
-std::unordered_map<std::string, std::function<MalNode(std::vector<MalNode>&)>> environment = {
-        {"+", [](auto& nodes) -> MalNode {
-            auto int_node = std::make_shared<Int>(0);
-            for (auto& node : nodes)
-                int_node->num_ += static_cast<Int*>(node.get())->num_;
-            return int_node;
-        }},
-        {"-", [](auto& nodes) -> MalNode {
-            auto first_node_val = static_cast<Int*>(nodes[0].get())->num_;
-            auto int_node = std::make_shared<Int>(first_node_val);
-            for (auto& node : nodes | std::views::drop(1))
-                int_node->num_ -= static_cast<Int*>(node.get())->num_;
-            return int_node;
-        }},
-        {"*", [](auto& nodes) -> MalNode {
-            auto int_node = std::make_shared<Int>(1);
-            for (auto& node : nodes)
-                int_node->num_ *= static_cast<Int*>(node.get())->num_;
-            return int_node;
-        }},
-        {"/", [](auto& nodes) -> MalNode {
-            auto first_node_val = static_cast<Int*>(nodes[0].get())->num_;
-            auto int_node = std::make_shared<Int>(first_node_val);
-            for (auto& node : nodes | std::views::drop(1))
-                int_node->num_ /= static_cast<Int*>(node.get())->num_;
-            return int_node;
-        }}
+    void Set(std::string symbol, MalNode data);
+    MalNode Get(std::string key);
+private:
+    std::unordered_map<std::string, MalNode> map_;
+    Environment* outer_;
 };
 
 #endif //MAL_ENVIRONMENT_H

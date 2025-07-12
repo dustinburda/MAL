@@ -2,6 +2,7 @@
 #define MAL_TYPES_H
 
 #include <cassert>
+#include <functional>
 #include <memory>
 #include <sstream>
 #include <unordered_map>
@@ -21,6 +22,7 @@ struct MalType {
         Quote,
         Quasiquote,
         Unquote,
+        Function,
         Nil
     };
 
@@ -271,6 +273,26 @@ struct Nil : MalType {
 
         return ss.str();
     }
+};
+
+using MalFunc = std::function<MalNode(std::vector<MalNode>&)>;
+struct Function : MalType {
+    Function(MalFunc func) : MalType{MalType::NodeType::Function}, func_{func} {}
+    ~Function() override {}
+
+    std::string Print() override {
+        std::stringstream ss;
+
+        ss << "function";
+
+        return ss.str();
+    }
+
+    MalNode ApplyFn(std::vector<MalNode>& nodes) {
+        return func_(nodes);
+    }
+
+    std::function<MalNode(std::vector<MalNode>&)> func_;
 };
 
 

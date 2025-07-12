@@ -5,4 +5,4 @@ project(MAL)
 set(CMAKE_CXX_STANDARD 23)
 add_compile_options(-Wall -Werror -Wextra)
 
-add_executable(MAL src/step2_eval.cpp src/reader.cpp src/types.cpp src/printer.cpp)
+add_executable(MAL src/step3_env.cpp src/reader.cpp src/types.cpp src/printer.cpp src/environment.cpp)
