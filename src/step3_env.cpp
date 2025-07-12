@@ -6,6 +6,7 @@
 #include "../include/environment.h"
 #include "../include/printer.h"
 #include "../include/reader.h"
+#include "../include/repfuncs.h"
 
 /*
  * @brief Takes source code and tokenizes + parses it into an AST
@@ -31,6 +32,28 @@ MalNode READ(std::string line) {
     return ReadStr(line);
 }
 
+MalNode Apply(Environment& env, std::vector<MalNode>& children) {
+    auto symbol = static_cast<Symbol*>(children[0].get())->symbol_;
+
+    if (symbol == "def!") {
+        auto variable = static_cast<Symbol*>(children[1].get())->symbol_;
+        auto value = EVAL(children[2], env);
+
+        env.Set(variable, value);
+    } else if (symbol == "let*") {
+
+    } else {
+        auto func = static_cast<Function*>(env.Get(symbol).get());
+        std::vector<MalNode> eval_children;
+        for (auto& child : children | std::views::drop(1))
+            eval_children.emplace_back(EVAL(child, env));
+
+        return func->ApplyFn(eval_children);
+    }
+
+    return std::make_shared<Nil>();
+}
+
 /*
  * @brief Takes an AST and Environment map and evaluates the AST
  *
@@ -41,20 +64,12 @@ MalNode EVAL(MalNode ast, Environment& env) {
     switch (ast->type_) {
         case MalType::NodeType::List: {
             auto list_node = static_cast<List*>(ast.get());
-            auto& children = list_node->children_;
 
+            auto& children = list_node->children_;
             if (children.size() == 0)
                 return ast;
 
-            auto symbol = static_cast<Symbol*>(children[0].get());
-            auto func = static_cast<Function*>(env.Get(symbol->symbol_).get());
-
-            auto eval_children = std::ranges::to<std::vector>( children
-                                                               | std::views::drop(1)
-                                                               | std::views::transform([&env] (auto elem) { return EVAL(elem, env); })
-                                                             );
-
-            return func->ApplyFn(eval_children);
+            return Apply(env, children);
         }
         case MalType::NodeType::Symbol: {
             auto symbol_node = static_cast<Symbol*>(ast.get());
