@@ -100,11 +100,11 @@ MalNode Reader::ReadAtom() {
             break;
         }
         case '-': {
-            if (token.size() == 1) {
-                node = ReadSymbol();
-                break;
-            } else if (token[0] == '-' && std::isdigit(token[1])) {
+            if (token[0] == '-' && std::isdigit(token[1])) {
                 node = ReadNum();
+                break;
+            } else {
+                node = ReadSymbol();
                 break;
             }
         }

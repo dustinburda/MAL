@@ -58,13 +58,22 @@ MalNode Apply(Environment& env, std::vector<MalNode>& children) {
         }
         return EVAL(children[2], *current_env);
 
-    } else {
-            auto func = static_cast<Function*>(env.Get(symbol).get());
-            std::vector<MalNode> eval_children;
-            for (auto& child : children | std::views::drop(1))
-                eval_children.emplace_back(EVAL(child, env));
+    } else if (symbol == "do") {
+        for (std::size_t i = 1; i < children.size(); i++)
+            EVAL(children[i], env);
 
-            return func->ApplyFn(eval_children);
+        return children.back();
+    } else if (symbol == "if") {
+        return nullptr;
+    } else if (symbol == "fn*") {
+        return nullptr;
+    } else {
+        auto func = static_cast<Function*>(env.Get(symbol).get());
+        std::vector<MalNode> eval_children;
+        for (auto& child : children | std::views::drop(1))
+            eval_children.emplace_back(EVAL(child, env));
+
+        return func->ApplyFn(eval_children);
     }
 
     return std::make_shared<Nil>();
@@ -135,33 +144,68 @@ std::string rep(std::string line, Environment& env) {
  * */
 void InitEnvironment(Environment& env) {
     env.Set("+", std::make_shared<Function>([](auto& nodes) -> MalNode {
-                auto int_node = std::make_shared<Int>(0);
-                for (auto& node : nodes)
-                    int_node->num_ += static_cast<Int*>(node.get())->num_;
-                return int_node;
+        auto int_node = std::make_shared<Int>(0);
+        for (auto& node : nodes)
+            int_node->num_ += static_cast<Int*>(node.get())->num_;
+        return int_node;
     }));
 
     env.Set("-", std::make_shared<Function>([](auto& nodes) -> MalNode {
-                auto first_node_val = static_cast<Int*>(nodes[0].get())->num_;
-                auto int_node = std::make_shared<Int>(first_node_val);
-                for (auto& node : nodes | std::views::drop(1))
-                    int_node->num_ -= static_cast<Int*>(node.get())->num_;
-                return int_node;
+        auto first_node_val = static_cast<Int*>(nodes[0].get())->num_;
+        auto int_node = std::make_shared<Int>(first_node_val);
+        for (auto& node : nodes | std::views::drop(1))
+            int_node->num_ -= static_cast<Int*>(node.get())->num_;
+        return int_node;
     }));
 
     env.Set("*", std::make_shared<Function>([](auto& nodes) -> MalNode {
-                auto int_node = std::make_shared<Int>(1);
-                for (auto& node : nodes)
-                    int_node->num_ *= static_cast<Int*>(node.get())->num_;
-                return int_node;
+        auto int_node = std::make_shared<Int>(1);
+        for (auto& node : nodes)
+            int_node->num_ *= static_cast<Int*>(node.get())->num_;
+        return int_node;
     }));
 
     env.Set("/", std::make_shared<Function>([](auto& nodes) -> MalNode {
-                auto first_node_val = static_cast<Int*>(nodes[0].get())->num_;
-                auto int_node = std::make_shared<Int>(first_node_val);
-                for (auto& node : nodes | std::views::drop(1))
-                    int_node->num_ /= static_cast<Int*>(node.get())->num_;
-                return int_node;
+        auto first_node_val = static_cast<Int*>(nodes[0].get())->num_;
+        auto int_node = std::make_shared<Int>(first_node_val);
+        for (auto& node : nodes | std::views::drop(1))
+            int_node->num_ /= static_cast<Int*>(node.get())->num_;
+        return int_node;
+    }));
+
+    env.Set("list", std::make_shared<Function>([](auto& nodes) -> MalNode {
+        auto list_node = std::make_shared<List>();
+        list_node->children_ = nodes;
+
+        return list_node;
+    }));
+
+    env.Set("list?", std::make_shared<Function>([](auto& nodes) -> MalNode {
+        auto list_node = dynamic_cast<List*>(nodes[0].get());
+
+        return std::make_shared<Boolean>(list_node != nullptr);
+
+    }));
+
+    env.Set("empty?", std::make_shared<Function>([](auto& nodes) -> MalNode {
+        auto list_node = dynamic_cast<List*>(nodes[0].get());
+
+        if (list_node == nullptr)
+            throw std::logic_error("First parameter must be a list!");
+
+        return std::make_shared<Boolean>(list_node->children_.size() == 0);
+
+    }));
+
+    env.Set("count", std::make_shared<Function>([](auto& nodes) -> MalNode {
+        auto list_node = dynamic_cast<List*>(nodes[0].get());
+        auto nil_node = dynamic_cast<Nil*>(nodes[0].get());
+
+        if (list_node == nullptr && nil_node == nullptr)
+            throw std::logic_error("count not found!");
+
+        return std::make_shared<Int>((nil_node != nullptr) ? 0 : list_node->children_.size());
+
     }));
 }
 
