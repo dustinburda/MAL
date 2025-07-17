@@ -64,7 +64,15 @@ MalNode Apply(Environment& env, std::vector<MalNode>& children) {
 
         return children.back();
     } else if (symbol == "if") {
-        return nullptr;
+        assert(children.size() == 3 || children.size() == 4);
+
+        auto eval_condition = EVAL(children[1], env);
+
+        if ( (eval_condition->type_ == MalType::NodeType::Nil) ||
+             (eval_condition->type_ == MalType::NodeType::Boolean && !static_cast<Boolean*>(eval_condition.get())->b_))
+            return (children.size() == 4) ? EVAL(children[3], env) : std::make_shared<Nil>();
+
+        return EVAL(children[2], env);
     } else if (symbol == "fn*") {
         return nullptr;
     } else {
@@ -206,6 +214,56 @@ void InitEnvironment(Environment& env) {
 
         return std::make_shared<Int>((nil_node != nullptr) ? 0 : list_node->children_.size());
 
+    }));
+
+    env.Set("<", std::make_shared<Function>([](auto& nodes) -> MalNode {
+        if (nodes.size() != 2)
+            throw std::logic_error("< is a binary operator!");
+
+        auto num1 = (nodes[0]->type_ == MalType::NodeType::Double)? static_cast<Double*>(nodes[0].get())->num_ : static_cast<Int*>(nodes[0].get())->num_;
+        auto num2 = (nodes[1]->type_ == MalType::NodeType::Double)? static_cast<Double*>(nodes[1].get())->num_ : static_cast<Int*>(nodes[1].get())->num_;
+
+        return std::make_shared<Boolean>(num1 < num2);
+    }));
+
+    env.Set("<=", std::make_shared<Function>([](auto& nodes) -> MalNode {
+        if (nodes.size() != 2)
+            throw std::logic_error("<= is a binary operator!");
+
+        auto num1 = (nodes[0]->type_ == MalType::NodeType::Double)? static_cast<Double*>(nodes[0].get())->num_ : static_cast<Int*>(nodes[0].get())->num_;
+        auto num2 = (nodes[1]->type_ == MalType::NodeType::Double)? static_cast<Double*>(nodes[1].get())->num_ : static_cast<Int*>(nodes[1].get())->num_;
+
+        return std::make_shared<Boolean>(num1 <= num2);
+    }));
+
+    env.Set(">", std::make_shared<Function>([](auto& nodes) -> MalNode {
+        if (nodes.size() != 2)
+            throw std::logic_error("> is a binary operator!");
+
+        auto num1 = (nodes[0]->type_ == MalType::NodeType::Double)? static_cast<Double*>(nodes[0].get())->num_ : static_cast<Int*>(nodes[0].get())->num_;
+        auto num2 = (nodes[1]->type_ == MalType::NodeType::Double)? static_cast<Double*>(nodes[1].get())->num_ : static_cast<Int*>(nodes[1].get())->num_;
+
+        return std::make_shared<Boolean>(num1 > num2);
+
+    }));
+
+    env.Set(">=", std::make_shared<Function>([](auto& nodes) -> MalNode {
+        if (nodes.size() != 2)
+            throw std::logic_error(">= is a binary operator!");
+
+        auto num1 = (nodes[0]->type_ == MalType::NodeType::Double)? static_cast<Double*>(nodes[0].get())->num_ : static_cast<Int*>(nodes[0].get())->num_;
+        auto num2 = (nodes[1]->type_ == MalType::NodeType::Double)? static_cast<Double*>(nodes[1].get())->num_ : static_cast<Int*>(nodes[1].get())->num_;
+
+        return std::make_shared<Boolean>(num1 >= num2);
+    }));
+
+    env.Set("=", std::make_shared<Function>([](auto& nodes) -> MalNode {
+        if (nodes.size() != 2)
+            throw std::logic_error(">= is a binary operator!");
+
+        auto equal = (*nodes[0] == *nodes[1]);
+
+        return std::make_shared<Boolean>(equal);
     }));
 }
 

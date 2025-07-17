@@ -144,7 +144,7 @@ MalNode Reader::ReadAtom() {
                 Next();
                 node = (token == "true") ? std::make_shared<Boolean>(true) : std::make_shared<Boolean>(false);
                 break;
-            } else if (std::isalpha(token[0])) {
+            } else if (std::isgraph(token[0])) {
                 Next();
                 node = std::make_shared<Symbol>(token);
                 break;

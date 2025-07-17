@@ -29,6 +29,7 @@ struct MalType {
     MalType(NodeType type) : type_{type} {}
     virtual ~MalType() {}
     virtual std::string Print() = 0;
+    virtual bool operator==(MalType& other) = 0;
 
     MalType::NodeType type_;
 };
@@ -62,6 +63,22 @@ struct List : MalType {
         return ss.str();
     }
 
+    bool operator==(MalType& other) override{
+        if (type_ != other.type_)
+            return false;
+
+        auto other_list = static_cast<List*>(&other);
+        if (other_list->children_.size() != children_.size())
+            return false;
+
+        for (std::size_t index = 0; index < children_.size(); index++) {
+            if (! (children_[index] == other_list->children_[index]))
+                return false;
+        }
+
+        return true;
+    }
+
     std::vector<MalNode> children_;
 };
 
@@ -90,6 +107,22 @@ struct Vector : MalType {
         return ss.str();
     }
 
+    bool operator==(MalType& other) override {
+        if (other.type_ != type_)
+            return false;
+
+        auto other_list = static_cast<Vector*>(&other);
+        if (other_list->children_.size() != children_.size())
+            return false;
+
+        for (std::size_t index = 0; index < children_.size(); index++) {
+            if (! (children_[index] == other_list->children_[index]))
+                return false;
+        }
+
+        return true;
+    }
+
     std::vector<MalNode> children_;
 };
 
@@ -114,6 +147,24 @@ struct HashMap : MalType {
         return ss.str();
     }
 
+    bool operator==(MalType& other) override {
+        if (other.type_ != type_)
+            return false;
+
+        auto other_map = static_cast<HashMap*>(&other);
+        if (other_map->kv_.size() != other_map->kv_.size())
+            return false;
+
+        for (auto& [k, v] : kv_) {
+            if (other_map->kv_.count(k) == 0)
+                return false;
+            if(! (other_map->kv_[k] == v))
+                return false;
+        }
+
+        return true;
+    }
+
     std::unordered_map<std::string, MalNode> kv_;
 };
 
@@ -129,6 +180,13 @@ struct Int : MalType {
         return ss.str();
     }
 
+    bool operator==(MalType& other) override {
+        if (other.type_ != type_)
+            return false;
+
+        return num_ == static_cast<Int*>(&other)->num_;
+    }
+
     int num_;
 };
 
@@ -142,6 +200,13 @@ struct Double : MalType {
         ss << num_;
 
         return ss.str();
+    }
+
+    bool operator==(MalType& other) override {
+        if (other.type_ != type_)
+            return false;
+
+        return num_ == static_cast<Double*>(&other)->num_;
     }
 
     double num_;
@@ -160,6 +225,13 @@ struct Keyword : MalType {
         return ss.str();
     }
 
+    bool operator==(MalType& other) override {
+        if (other.type_ != type_)
+            return false;
+
+        return keyword_ == static_cast<Keyword*>(&other)->keyword_;
+    }
+
     std::string keyword_;
 };
 
@@ -174,6 +246,13 @@ struct String : MalType {
         ss << "\"";
 
         return ss.str();
+    }
+
+    bool operator==(MalType& other) override {
+        if (other.type_ != type_)
+            return false;
+
+        return s_ == static_cast<String*>(&other)->s_;
     }
 
     std::string s_;
@@ -191,6 +270,13 @@ struct Boolean : MalType {
         return ss.str();
     }
 
+    bool operator==(MalType& other) override {
+        if (other.type_ != type_)
+            return false;
+
+        return b_ == static_cast<Boolean*>(&other)->b_;
+    }
+
     bool b_;
 };
 
@@ -205,6 +291,13 @@ struct Symbol : MalType {
         ss << symbol_;
 
         return ss.str();
+    }
+
+    bool operator==(MalType& other) override {
+        if (other.type_ != type_)
+            return false;
+
+        return symbol_ == static_cast<Symbol*>(&other)->symbol_;
     }
 
     std::string symbol_;
@@ -224,6 +317,13 @@ struct Quote : MalType {
         return ss.str();
     }
 
+    bool operator==(MalType& other) override {
+        if (other.type_ != type_)
+            return false;
+
+        return child_ == static_cast<Quote*>(&other)->child_;
+    }
+
     MalNode child_;
 };
 
@@ -239,6 +339,13 @@ struct Quasiquote : MalType {
         ss << ")";
 
         return ss.str();
+    }
+
+    bool operator==(MalType& other) override {
+        if (other.type_ != type_)
+            return false;
+
+        return child_ == static_cast<Quasiquote*>(&other)->child_;
     }
 
     MalNode child_;
@@ -258,6 +365,13 @@ struct Unquote : MalType {
         return ss.str();
     }
 
+    bool operator==(MalType& other) override {
+        if (other.type_ != type_)
+            return false;
+
+        return child_ == static_cast<Unquote*>(&other)->child_;
+    }
+
     MalNode child_;
 };
 
@@ -272,6 +386,10 @@ struct Nil : MalType {
         ss << "nil";
 
         return ss.str();
+    }
+
+    bool operator==(MalType& other) override {
+        return other.type_ == type_;
     }
 };
 
@@ -290,6 +408,10 @@ struct Function : MalType {
 
     MalNode ApplyFn(std::vector<MalNode>& nodes) {
         return func_(nodes);
+    }
+
+    bool operator==( [[maybe_unused]] MalType& other) override {
+        return true;
     }
 
     std::function<MalNode(std::vector<MalNode>&)> func_;
