@@ -285,6 +285,15 @@ void InitEnvironment(Environment& env) {
 
         return std::make_shared<Boolean>(equal);
     }));
+
+    env.Set("prn", std::make_shared<Function>([](auto& nodes) -> MalNode {
+        if (nodes.size() != 2)
+            throw std::logic_error(">= is a binary operator!");
+
+        auto equal = (*nodes[0] == *nodes[1]);
+
+        return std::make_shared<Boolean>(equal);
+    }));
 }
 
 int main() {

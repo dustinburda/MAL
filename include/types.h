@@ -42,42 +42,9 @@ struct List : MalType {
     List() : MalType{NodeType::List}, children_{} {}
     ~List() override  {}
 
-    void Add(MalNode node) {
-        children_.push_back(node);
-    }
-
-    std::string Print() override {
-        std::stringstream ss;
-
-        ss << "(";
-        for (size_t index = 0;auto& child : children_) {
-            ss << child->Print();
-
-            index++;
-
-            if (index != children_.size())
-                ss << " ";
-        }
-        ss << ")";
-
-        return ss.str();
-    }
-
-    bool operator==(MalType& other) override{
-        if (type_ != other.type_)
-            return false;
-
-        auto other_list = static_cast<List*>(&other);
-        if (other_list->children_.size() != children_.size())
-            return false;
-
-        for (std::size_t index = 0; index < children_.size(); index++) {
-            if (! (*children_[index] == *other_list->children_[index]))
-                return false;
-        }
-
-        return true;
-    }
+    void Add(MalNode node);
+    std::string Print() override;
+    bool operator==(MalType& other) override;
 
     std::vector<MalNode> children_;
 };
@@ -86,42 +53,9 @@ struct Vector : MalType {
     Vector() : MalType{NodeType::Vector}, children_{} {}
     ~Vector() override { }
 
-    void Add(MalNode node) {
-        children_.push_back(node);
-    }
-
-    std::string Print() override {
-        std::stringstream ss;
-
-        ss << "[";
-        for (size_t index = 0;auto& child : children_) {
-            ss << child->Print();
-
-            index++;
-
-            if (index != children_.size())
-                ss << " ";
-        }
-        ss << "]";
-
-        return ss.str();
-    }
-
-    bool operator==(MalType& other) override {
-        if (other.type_ != type_)
-            return false;
-
-        auto other_list = static_cast<Vector*>(&other);
-        if (other_list->children_.size() != children_.size())
-            return false;
-
-        for (std::size_t index = 0; index < children_.size(); index++) {
-            if (! (*children_[index] == *other_list->children_[index]))
-                return false;
-        }
-
-        return true;
-    }
+    void Add(MalNode node);
+    std::string Print() override;
+    bool operator==(MalType& other) override;
 
     std::vector<MalNode> children_;
 };
@@ -130,40 +64,8 @@ struct HashMap : MalType {
     HashMap() : MalType{NodeType::HashMap}, kv_{} {}
     ~HashMap() override  {}
 
-    std::string Print() override {
-        std::stringstream ss;
-
-        ss << "{";
-        for (size_t index = 0; auto& [k, v] : kv_) {
-            ss << k << " " <<  v->Print();
-
-            index++;
-
-            if (index != kv_.size())
-                ss << " ";
-        }
-        ss << "}";
-
-        return ss.str();
-    }
-
-    bool operator==(MalType& other) override {
-        if (other.type_ != type_)
-            return false;
-
-        auto other_map = static_cast<HashMap*>(&other);
-        if (other_map->kv_.size() != other_map->kv_.size())
-            return false;
-
-        for (auto& [k, v] : kv_) {
-            if (other_map->kv_.count(k) == 0)
-                return false;
-            if(! (other_map->kv_[k] == v))
-                return false;
-        }
-
-        return true;
-    }
+    std::string Print() override;
+    bool operator==(MalType& other) override;
 
     std::unordered_map<std::string, MalNode> kv_;
 };
@@ -172,20 +74,8 @@ struct Int : MalType {
     explicit Int(int i) : MalType{NodeType::Int}, num_{i} {}
     ~Int() override { }
 
-    std::string Print() override {
-        std::stringstream ss;
-
-        ss << num_;
-
-        return ss.str();
-    }
-
-    bool operator==(MalType& other) override {
-        if (other.type_ != type_)
-            return false;
-
-        return num_ == static_cast<Int*>(&other)->num_;
-    }
+    std::string Print() override;
+    bool operator==(MalType& other) override;
 
     int num_;
 };
@@ -194,20 +84,8 @@ struct Double : MalType {
     explicit Double(double d) : MalType{NodeType::Double}, num_{d} {}
     ~Double() override {}
 
-    std::string Print() override {
-        std::stringstream ss;
-
-        ss << num_;
-
-        return ss.str();
-    }
-
-    bool operator==(MalType& other) override {
-        if (other.type_ != type_)
-            return false;
-
-        return num_ == static_cast<Double*>(&other)->num_;
-    }
+    std::string Print() override;
+    bool operator==(MalType& other) override;
 
     double num_;
 };
@@ -216,21 +94,8 @@ struct Keyword : MalType {
     explicit Keyword(std::string keyword) : MalType(NodeType::Keyword), keyword_{keyword.substr(1, keyword.size() - 1)} {}
     ~Keyword() override {}
 
-    std::string Print() override {
-        std::stringstream ss;
-
-        ss << ":";
-        ss << keyword_;
-
-        return ss.str();
-    }
-
-    bool operator==(MalType& other) override {
-        if (other.type_ != type_)
-            return false;
-
-        return keyword_ == static_cast<Keyword*>(&other)->keyword_;
-    }
+    std::string Print() override;
+    bool operator==(MalType& other) override;
 
     std::string keyword_;
 };
@@ -239,38 +104,9 @@ struct String : MalType {
     explicit String(std::string s) : MalType{NodeType::String}, s_{s} {}
     ~String() override {}
 
-    std::string PrintStr(bool print_readably) {
-        std::stringstream ss;
-
-        for (std::size_t index = 0; index < s_.size(); index++) {
-            if (print_readably && s_[index] == '\"')
-                ss << '\\' << '\"';
-            else if (print_readably && s_[index] == '\n')
-                ss << '\\' << 'n';
-            else if (print_readably && s_[index] == '\\')
-                ss << '\\' << '\\';
-            else
-                ss << s_[index];
-        }
-
-        return ss.str();
-    }
-
-    std::string Print() override {
-        std::stringstream ss;
-        ss << "\"";
-        ss << PrintStr(true);
-        ss << "\"";
-
-        return ss.str();
-    }
-
-    bool operator==(MalType& other) override {
-        if (other.type_ != type_)
-            return false;
-
-        return s_ == static_cast<String*>(&other)->s_;
-    }
+    std::string PrintStr(bool print_readably);
+    std::string Print() override;
+    bool operator==(MalType& other) override;
 
     std::string s_;
 };
@@ -279,20 +115,8 @@ struct Boolean : MalType {
     explicit Boolean(bool b) : MalType{NodeType::Boolean}, b_{b} {}
     ~Boolean() override {}
 
-    std::string Print() override {
-        std::stringstream ss;
-
-        ss << ((b_) ? "true" : "false");
-
-        return ss.str();
-    }
-
-    bool operator==(MalType& other) override {
-        if (other.type_ != type_)
-            return false;
-
-        return b_ == static_cast<Boolean*>(&other)->b_;
-    }
+    std::string Print() override;
+    bool operator==(MalType& other) override;
 
     bool b_;
 };
@@ -302,20 +126,8 @@ struct Symbol : MalType {
     explicit Symbol(std::string symbol) : MalType{NodeType::Symbol}, symbol_{symbol} { }
     ~Symbol() override {}
 
-    std::string Print() override {
-        std::stringstream ss;
-
-        ss << symbol_;
-
-        return ss.str();
-    }
-
-    bool operator==(MalType& other) override {
-        if (other.type_ != type_)
-            return false;
-
-        return symbol_ == static_cast<Symbol*>(&other)->symbol_;
-    }
+    std::string Print() override;
+    bool operator==(MalType& other) override;
 
     std::string symbol_;
 };
@@ -324,22 +136,8 @@ struct Quote : MalType {
     explicit Quote(MalNode child) : MalType{NodeType::Quote}, child_{child} {}
     ~Quote() override {}
 
-    std::string Print() override {
-        std::stringstream ss;
-
-        ss << "(quote ";
-        ss << child_->Print();
-        ss << ")";
-
-        return ss.str();
-    }
-
-    bool operator==(MalType& other) override {
-        if (other.type_ != type_)
-            return false;
-
-        return child_ == static_cast<Quote*>(&other)->child_;
-    }
+    std::string Print() override;
+    bool operator==(MalType& other) override;
 
     MalNode child_;
 };

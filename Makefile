@@ -20,4 +20,4 @@ step4_if_fn_do: $(SRC_FILES) $(INCLUDE_FILES) ./src/step4_if_fn_do.cpp
 	g++ -std=$(CXX_VERSION) $(CFLAGS) ./src/step4_if_fn_do.cpp $(SRC_FILES) -o step4_if_fn_do
 
 clean:
-	rm -f MAL step0_repl step1_read_print step2_eval step3_env
+	rm -f MAL step0_repl step1_read_print step2_eval step3_env step4_if_fn_do
