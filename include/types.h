@@ -239,10 +239,27 @@ struct String : MalType {
     explicit String(std::string s) : MalType{NodeType::String}, s_{s} {}
     ~String() override {}
 
+    std::string PrintStr(bool print_readably) {
+        std::stringstream ss;
+
+        for (std::size_t index = 0; index < s_.size(); index++) {
+            if (print_readably && s_[index] == '\"')
+                ss << '\\' << '\"';
+            else if (print_readably && s_[index] == '\n')
+                ss << '\\' << 'n';
+            else if (print_readably && s_[index] == '\\')
+                ss << '\\' << '\\';
+            else
+                ss << s_[index];
+        }
+
+        return ss.str();
+    }
+
     std::string Print() override {
         std::stringstream ss;
         ss << "\"";
-        ss << s_;
+        ss << PrintStr(true);
         ss << "\"";
 
         return ss.str();

@@ -183,31 +183,37 @@ MalNode Reader::ReadString() {
     std::string value;
 
     std::string literal_value = token.substr(1, token.size() - 2);
+
     for(std::size_t index = 0; index < literal_value.size(); index++)
     {
-//        if (literal_value[index] == '\\' && index < literal_value.size() - 1) {
-//            switch (literal_value[index + 1]) {
-//                case '\n': {
-//                    value += '\n';
-//                    index++;
-//                    continue;
-//                }
-//                case '\\': {
-//                    value += '\\';
-//                    index++;
-//                    continue;
-//                }
-//                case '\"': {
-//                    value += '\"';
-//                    index++;
-//                    continue;
-//                }
-//            }
-//        }
-
+        if (literal_value[index] == '\\') {
+            if (index < literal_value.size() - 1) {
+                [[maybe_unused ]] char c = literal_value[index + 1];
+                switch (literal_value[index + 1]) {
+                    case 'n': {
+                        value += '\n';
+                        index++;
+                        continue;
+                    }
+                    case '\\': {
+                        value += '\\';
+                        index++;
+                        continue;
+                    }
+                    case '\"': {
+                        value += '\"';
+                        index++;
+                        continue;
+                    }
+                    default:
+                        throw std::logic_error("unbalanced");
+                }
+            } else {
+                throw std::logic_error("unbalanced");
+            }
+        }
         value += literal_value[index];
     }
-
 
     return std::make_shared<String>(value);
 }
