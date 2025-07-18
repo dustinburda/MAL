@@ -8,7 +8,7 @@ Environment::Environment() : outer_{nullptr} {}
 
 Environment::Environment(Environment* outer) : outer_{outer} {}
 
-Environment::Environment(Environment* outer, std::vector<std::string>& bind, std::vector<MalNode>& exprs) : outer_{outer} {
+Environment::Environment(Environment* outer, const std::vector<std::string>& bind, const std::vector<MalNode>& exprs) : outer_{outer} {
     if (bind.size() != exprs.size())
         throw std::logic_error("Number of binds must be equal to the number of exprs");
 

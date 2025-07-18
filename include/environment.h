@@ -16,7 +16,7 @@ class Environment {
 public:
     Environment();
     Environment(Environment* outer);
-    Environment(Environment* outer, std::vector<std::string>& bind, std::vector<MalNode>& exprs);
+    Environment(Environment* outer, const std::vector<std::string>& bind, const std::vector<MalNode>& exprs);
 
     void Set(std::string symbol, MalNode data);
     MalNode Get(std::string key);
