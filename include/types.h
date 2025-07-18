@@ -72,7 +72,7 @@ struct List : MalType {
             return false;
 
         for (std::size_t index = 0; index < children_.size(); index++) {
-            if (! (children_[index] == other_list->children_[index]))
+            if (! (*children_[index] == *other_list->children_[index]))
                 return false;
         }
 
@@ -116,7 +116,7 @@ struct Vector : MalType {
             return false;
 
         for (std::size_t index = 0; index < children_.size(); index++) {
-            if (! (children_[index] == other_list->children_[index]))
+            if (! (*children_[index] == *other_list->children_[index]))
                 return false;
         }
 

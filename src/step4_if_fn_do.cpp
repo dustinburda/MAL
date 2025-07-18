@@ -34,9 +34,7 @@ MalNode READ(std::string line) {
     return ReadStr(line);
 }
 
-MalNode Apply(Environment& env, std::vector<MalNode>& children) {
-    auto symbol = static_cast<Symbol*>(children[0].get())->symbol_;
-
+MalNode ApplySymbol(Environment& env, std::string symbol, std::vector<MalNode>& children) {
     if (symbol == "def!") {
         auto variable = static_cast<Symbol*>(children[1].get())->symbol_;
         auto value = EVAL(children[2], env);
@@ -73,8 +71,6 @@ MalNode Apply(Environment& env, std::vector<MalNode>& children) {
             return (children.size() == 4) ? EVAL(children[3], env) : std::make_shared<Nil>();
 
         return EVAL(children[2], env);
-    } else if (symbol == "fn*") {
-        return nullptr;
     } else {
         auto func = static_cast<Function*>(env.Get(symbol).get());
         std::vector<MalNode> eval_children;
@@ -82,6 +78,48 @@ MalNode Apply(Environment& env, std::vector<MalNode>& children) {
             eval_children.emplace_back(EVAL(child, env));
 
         return func->ApplyFn(eval_children);
+    }
+
+    return std::make_shared<Nil>();
+}
+
+MalNode Apply(Environment& env, std::vector<MalNode>& children) {
+    auto& first_child = children[0];
+
+    if (first_child->type_ == MalType::NodeType::Symbol)
+    {
+        auto symbol = static_cast<Symbol*>(first_child.get())->symbol_;
+
+        return ApplySymbol(env, symbol, children);
+    } else if (first_child->type_ == MalType::NodeType::List) {
+        auto fn_defn = static_cast<List*>(first_child.get());
+        assert(fn_defn->children_.size() == 3);
+
+        auto fn_symbol = static_cast<Symbol*>(fn_defn->children_[0].get());
+        assert(fn_symbol->symbol_ == "fn*");
+
+        auto fn_vars = static_cast<List*>(fn_defn->children_[1].get());
+        std::vector<std::string> binds;
+        for (auto& var : fn_vars->children_) {
+            auto var_symbol = static_cast<Symbol*>(var.get())->symbol_;
+            binds.push_back(var_symbol);
+        }
+
+        std::vector<MalNode> exprs;
+        for (auto& child : children | std::views::drop(1))
+            exprs.push_back(EVAL(child, env));
+
+        auto fn_body = fn_defn->children_[2];
+
+        auto closure = std::make_shared<Function>([&binds, &fn_body, &env]( [[maybe_unused ]] std::vector<MalNode>& exprs) -> MalNode {
+
+            auto new_env = std::make_shared<Environment>(&env, binds, exprs);
+            envs.push_back(new_env);
+
+            return EVAL(fn_body, *new_env);
+        });
+
+        return closure->ApplyFn(exprs);
     }
 
     return std::make_shared<Nil>();
