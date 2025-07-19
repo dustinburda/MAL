@@ -219,7 +219,7 @@ bool Symbol::operator==(MalType& other) {
     return symbol_ == static_cast<Symbol*>(&other)->symbol_;
 }
 
-std::string Quote::Print() override {
+std::string Quote::Print() {
     std::stringstream ss;
 
     ss << "(quote ";
@@ -229,9 +229,45 @@ std::string Quote::Print() override {
     return ss.str();
 }
 
-bool Quote::operator==(MalType& other) override {
+bool Quote::operator==(MalType& other) {
     if (other.type_ != type_)
     return false;
 
     return child_ == static_cast<Quote*>(&other)->child_;
 }
+
+std::string Quasiquote::Print() {
+    std::stringstream ss;
+
+    ss << "(quasiquote ";
+    ss << child_->Print();
+    ss << ")";
+
+    return ss.str();
+}
+
+bool Quasiquote::operator==(MalType& other) {
+    if (other.type_ != type_)
+    return false;
+
+    return child_ == static_cast<Quasiquote*>(&other)->child_;
+}
+
+std::string Unquote::Print() {
+    std::stringstream ss;
+
+    ss << "(unquote ";
+    ss << child_->Print();
+    ss << ")";
+
+    return ss.str();
+}
+
+bool Unquote::operator==(MalType& other) {
+    if (other.type_ != type_)
+    return false;
+
+    return child_ == static_cast<Unquote*>(&other)->child_;
+}
+
+

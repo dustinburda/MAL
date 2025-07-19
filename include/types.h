@@ -146,22 +146,8 @@ struct Quasiquote : MalType {
     explicit Quasiquote(MalNode child) : MalType{NodeType::Quasiquote}, child_{child} {}
     ~Quasiquote() override {}
 
-    std::string Print() override {
-        std::stringstream ss;
-
-        ss << "(quasiquote ";
-        ss << child_->Print();
-        ss << ")";
-
-        return ss.str();
-    }
-
-    bool operator==(MalType& other) override {
-        if (other.type_ != type_)
-            return false;
-
-        return child_ == static_cast<Quasiquote*>(&other)->child_;
-    }
+    std::string Print() override;
+    bool operator==(MalType& other) override;
 
     MalNode child_;
 };
@@ -170,22 +156,8 @@ struct Unquote : MalType {
     explicit Unquote(MalNode child) : MalType{NodeType::Unquote}, child_{child} {}
     ~Unquote() override {}
 
-    std::string Print() override {
-        std::stringstream ss;
-
-        ss << "(unquote ";
-        ss << child_->Print();
-        ss << ")";
-
-        return ss.str();
-    }
-
-    bool operator==(MalType& other) override {
-        if (other.type_ != type_)
-            return false;
-
-        return child_ == static_cast<Unquote*>(&other)->child_;
-    }
+    std::string Print() override;
+    bool operator==(MalType& other) override;
 
     MalNode child_;
 };
