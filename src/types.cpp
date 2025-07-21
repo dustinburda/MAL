@@ -4,12 +4,12 @@ void List::Add(MalNode node) {
     children_.push_back(node);
 }
 
-std::string List::Print() {
+std::string List::Print(bool print_readably) {
     std::stringstream ss;
 
     ss << "(";
     for (size_t index = 0;auto& child : children_) {
-        ss << child->Print();
+        ss << child->Print(print_readably);
 
         index++;
 
@@ -57,12 +57,12 @@ void Vector::Add(MalNode node) {
     children_.push_back(node);
 }
 
-std::string Vector::Print() {
+std::string Vector::Print(bool print_readably) {
     std::stringstream ss;
 
     ss << "[";
     for (size_t index = 0;auto& child : children_) {
-        ss << child->Print();
+        ss << child->Print(print_readably);
 
         index++;
 
@@ -74,12 +74,12 @@ std::string Vector::Print() {
     return ss.str();
 }
 
-std::string HashMap::Print() {
+std::string HashMap::Print(bool print_readably) {
     std::stringstream ss;
 
     ss << "{";
     for (size_t index = 0; auto& [k, v] : kv_) {
-        ss << k << " " <<  v->Print();
+        ss << k << " " <<  v->Print(print_readably);
 
         index++;
 
@@ -110,7 +110,7 @@ bool HashMap::operator==(MalType& other) {
 }
 
 
-std::string Int::Print() {
+std::string Int::Print([[maybe_unused]] bool print_readably) {
     std::stringstream ss;
 
     ss << num_;
@@ -125,7 +125,7 @@ bool Int::operator==(MalType& other) {
     return num_ == static_cast<Int*>(&other)->num_;
 }
 
-std::string Double::Print() {
+std::string Double::Print([[maybe_unused]] bool print_readably) {
     std::stringstream ss;
 
     ss << num_;
@@ -140,7 +140,7 @@ bool Double::operator==(MalType& other) {
     return num_ == static_cast<Double*>(&other)->num_;
 }
 
-std::string Keyword::Print() {
+std::string Keyword::Print([[maybe_unused]] bool print_readably) {
     std::stringstream ss;
 
     ss << ":";
@@ -173,10 +173,10 @@ std::string String::PrintStr(bool print_readably) {
     return ss.str();
 }
 
-std::string String::Print() {
+std::string String::Print([[maybe_unused]] bool print_readably) {
     std::stringstream ss;
     ss << "\"";
-    ss << PrintStr(true);
+    ss << PrintStr(print_readably);
     ss << "\"";
 
     return ss.str();
@@ -189,7 +189,7 @@ bool String::operator==(MalType& other) {
     return s_ == static_cast<String*>(&other)->s_;
 }
 
-std::string Boolean::Print() {
+std::string Boolean::Print([[maybe_unused]] bool print_readably) {
     std::stringstream ss;
 
     ss << ((b_) ? "true" : "false");
@@ -204,7 +204,7 @@ bool Boolean::operator==(MalType& other) {
     return b_ == static_cast<Boolean*>(&other)->b_;
 }
 
-std::string Symbol::Print() {
+std::string Symbol::Print([[maybe_unused]] bool print_readably) {
     std::stringstream ss;
 
     ss << symbol_;
@@ -219,11 +219,11 @@ bool Symbol::operator==(MalType& other) {
     return symbol_ == static_cast<Symbol*>(&other)->symbol_;
 }
 
-std::string Quote::Print() {
+std::string Quote::Print([[maybe_unused]] bool print_readably) {
     std::stringstream ss;
 
     ss << "(quote ";
-    ss << child_->Print();
+    ss << child_->Print(print_readably);
     ss << ")";
 
     return ss.str();
@@ -236,11 +236,11 @@ bool Quote::operator==(MalType& other) {
     return child_ == static_cast<Quote*>(&other)->child_;
 }
 
-std::string Quasiquote::Print() {
+std::string Quasiquote::Print([[maybe_unused]] bool print_readably) {
     std::stringstream ss;
 
     ss << "(quasiquote ";
-    ss << child_->Print();
+    ss << child_->Print(print_readably);
     ss << ")";
 
     return ss.str();
@@ -253,11 +253,11 @@ bool Quasiquote::operator==(MalType& other) {
     return child_ == static_cast<Quasiquote*>(&other)->child_;
 }
 
-std::string Unquote::Print() {
+std::string Unquote::Print([[maybe_unused]] bool print_readably) {
     std::stringstream ss;
 
     ss << "(unquote ";
-    ss << child_->Print();
+    ss << child_->Print(print_readably);
     ss << ")";
 
     return ss.str();
@@ -270,4 +270,31 @@ bool Unquote::operator==(MalType& other) {
     return child_ == static_cast<Unquote*>(&other)->child_;
 }
 
+std::string Nil::Print([[maybe_unused]] bool print_readably) {
+    std::stringstream ss;
+
+    ss << "nil";
+
+    return ss.str();
+}
+
+bool Nil::operator==(MalType& other)  {
+    return other.type_ == type_;
+}
+
+std::string Function::Print([[maybe_unused]] bool print_readably) {
+    std::stringstream ss;
+
+    ss << "function";
+
+    return ss.str();
+}
+
+MalNode Function::ApplyFn(std::vector<MalNode>& nodes) {
+    return func_(nodes);
+}
+
+bool Function::operator==( [[maybe_unused]] MalType& other) {
+    return true;
+}
 

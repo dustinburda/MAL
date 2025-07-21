@@ -61,10 +61,15 @@ MalNode Apply(Environment& env, std::vector<MalNode>& children) {
             return EVAL(children[2], *current_env);
 
         } else if (symbol == "do") {
-            for (std::size_t i = 1; i < children.size(); i++)
-                EVAL(children[i], env);
+            MalNode ret = nullptr;
+            for (std::size_t i = 1; i < children.size(); i++) {
+                auto eval_child = EVAL(children[i], env);
 
-            return children.back();
+                if ( i == children.size() - 1)
+                    ret = eval_child;
+            }
+
+            return ret;
         } else if (symbol == "if") {
             assert(children.size() == 3 || children.size() == 4);
 
@@ -171,6 +176,8 @@ std::string rep(std::string line, Environment& env) {
  *
  * */
 void InitEnvironment(Environment& env) {
+    rep("(def! not (fn* (a) (if a false true)))", env);
+
     env.Set("+", std::make_shared<Function>([](auto& nodes) -> MalNode {
         auto int_node = std::make_shared<Int>(0);
         for (auto& node : nodes)
@@ -216,24 +223,37 @@ void InitEnvironment(Environment& env) {
     }));
 
     env.Set("empty?", std::make_shared<Function>([](auto& nodes) -> MalNode {
-        auto list_node = dynamic_cast<List*>(nodes[0].get());
+        std::size_t size = 0;
+        switch (nodes[0]->type_) {
+            case MalType::NodeType::List:
+                size = static_cast<List*>(nodes[0].get())->children_.size();
+                break;
+            case MalType::NodeType::Vector:
+                size = static_cast<Vector*>(nodes[0].get())->children_.size();
+                break;
+            default:
+                throw std::logic_error("First parameter must be a list or a vector!");
+        }
 
-        if (list_node == nullptr)
-            throw std::logic_error("First parameter must be a list!");
-
-        return std::make_shared<Boolean>(list_node->children_.size() == 0);
-
+        return std::make_shared<Boolean>(size == 0);
     }));
 
     env.Set("count", std::make_shared<Function>([](auto& nodes) -> MalNode {
-        auto list_node = dynamic_cast<List*>(nodes[0].get());
-        auto nil_node = dynamic_cast<Nil*>(nodes[0].get());
-
-        if (list_node == nullptr && nil_node == nullptr)
-            throw std::logic_error("count not found!");
-
-        return std::make_shared<Int>((nil_node != nullptr) ? 0 : list_node->children_.size());
-
+        auto size = 0;
+        switch (nodes[0]->type_) {
+            case MalType::NodeType::Nil:
+                size = 0;
+                break;
+            case MalType::NodeType::Vector:
+                size = static_cast<Vector*>(nodes[0].get())->children_.size();
+                break;
+            case MalType::NodeType::List:
+                size = static_cast<List*>(nodes[0].get())->children_.size();
+                break;
+            default:
+                throw std::logic_error("count not found!");
+        }
+        return std::make_shared<Int>(size);
     }));
 
     env.Set("<", std::make_shared<Function>([](auto& nodes) -> MalNode {
@@ -287,12 +307,30 @@ void InitEnvironment(Environment& env) {
     }));
 
     env.Set("prn", std::make_shared<Function>([](auto& nodes) -> MalNode {
-        if (nodes.size() != 2)
-            throw std::logic_error(">= is a binary operator!");
+        for (std::size_t index = 0; auto& node : nodes) {
+            std::cout << node->Print(true);
 
-        auto equal = (*nodes[0] == *nodes[1]);
+            if (nodes.size() > 1 && index < nodes.size() - 1)
+                std::cout << " ";
 
-        return std::make_shared<Boolean>(equal);
+            index++;
+        }
+        std::cout << "\n";
+
+        return std::make_shared<Nil>();
+    }));
+
+    env.Set("pr-str", std::make_shared<Function>([](auto& nodes) -> MalNode {
+        std::stringstream ss;
+        for (std::size_t index = 0; auto& node : nodes) {
+            ss << node->Print(true);
+
+            if (nodes.size() > 1 && index < nodes.size() - 1)
+                ss << " ";
+
+            index++;
+        }
+        return std::make_shared<String>(ss.str());
     }));
 }
 
