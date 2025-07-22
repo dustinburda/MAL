@@ -9,12 +9,21 @@ Environment::Environment() : outer_{nullptr} {}
 Environment::Environment(Environment* outer) : outer_{outer} {}
 
 Environment::Environment(Environment* outer, const std::vector<std::string>& bind, const std::vector<MalNode>& exprs) : outer_{outer} {
-    if (bind.size() != exprs.size())
-        throw std::logic_error("Number of binds must be equal to the number of exprs");
-
     for (std::size_t index = 0; index < bind.size(); index++) {
         auto& symbol = bind[index];
         auto& expr = exprs[index];
+
+        if (symbol == "&")
+        {
+            auto more_symbol = bind[index + 1];
+
+            auto remaining_args = std::make_shared<List>();
+            remaining_args->children_ = std::vector<MalNode> {exprs.begin() + index, exprs.end()};
+
+            map_[more_symbol] = remaining_args;
+            return;
+        }
+
         map_[symbol] = expr;
     }
 }

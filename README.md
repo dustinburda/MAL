@@ -9,7 +9,7 @@ conditionals, arrays, hashmaps, strings, and more. The end-goal is to have it to
 
 1. Clone the repo
 
-`git clone https://github.com/kanaka/mal.git`
+`git clone https://github.com/dustinburda/MAL.git`
 
 2. The run the following commands to build the system:  
 
