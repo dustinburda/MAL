@@ -24,3 +24,26 @@ $ make
 ```
  ./MAL
 ```
+
+
+## Usage
+
+```
+user> (+ 2 2)
+4
+```
+
+```
+user> (def! add (fn* (a b) (+ a b)))
+user> (add 3 4)
+7
+```
+
+## TODO
+* Tail-call optimization
+* File loading
+* Quoting
+* Macros
+
+## Project Status
+The status of this project is: _In Progress_
