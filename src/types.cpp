@@ -14,7 +14,7 @@ std::string List::Print(bool print_readably) {
         index++;
 
         if (index != children_.size())
-        ss << " ";
+            ss << " ";
     }
     ss << ")";
 
@@ -175,9 +175,13 @@ std::string String::PrintStr(bool print_readably) {
 
 std::string String::Print([[maybe_unused]] bool print_readably) {
     std::stringstream ss;
-    ss << "\"";
+    if (print_readably)
+        ss << "\"";
+
     ss << PrintStr(print_readably);
-    ss << "\"";
+
+    if (print_readably)
+        ss << "\"";
 
     return ss.str();
 }

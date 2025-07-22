@@ -337,9 +337,6 @@ void InitEnvironment(Environment& env) {
         std::stringstream ss;
         for (auto& node : nodes) {
             auto printed_value = node->Print(false);
-            if (node->type_ == MalType::NodeType::String)
-                printed_value = printed_value.substr(1, printed_value.size() - 2);
-
             ss << printed_value;
         }
         return std::make_shared<String>(ss.str());
@@ -349,10 +346,8 @@ void InitEnvironment(Environment& env) {
         std::stringstream ss;
         for (std::size_t index = 0; auto& node : nodes) {
             auto printed_value = node->Print(false);
-            if (node->type_ == MalType::NodeType::String)
-                printed_value = printed_value.substr(1, printed_value.size() - 2);
-
             std::cout << printed_value;
+
             if (index != nodes.size() - 1)
                 std::cout << " ";
 
